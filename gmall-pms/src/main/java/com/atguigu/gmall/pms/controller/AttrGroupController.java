@@ -1,7 +1,8 @@
 package com.atguigu.gmall.pms.controller;
 
-import java.util.Arrays;
-
+import com.atguigu.gmall.pms.entity.AttrGroup;
+import com.atguigu.gmall.pms.service.AttrGroupService;
+import com.atguigu.gmall.pms.vo.GroupVO;
 import com.java.core.bean.PageVo;
 import com.java.core.bean.QueryCondition;
 import com.java.core.bean.Resp;
@@ -11,13 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.atguigu.gmall.pms.entity.AttrGroup;
-import com.atguigu.gmall.pms.service.AttrGroupService;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 属性分组
+ *
  * @author spl
- * @since  2020-05-12 11:49:27
+ * @since 2020-05-12 11:49:27
  */
 @Api(tags = "属性分组 管理")
 @RestController
@@ -25,6 +27,18 @@ import com.atguigu.gmall.pms.service.AttrGroupService;
 public class AttrGroupController {
     @Autowired
     private AttrGroupService attrGroupService;
+
+    @GetMapping("{catId}")
+    public Resp<PageVo> queryGroupByPage(QueryCondition condition, @PathVariable("catId") long catId) {
+        PageVo page = attrGroupService.queryGroupByPage(condition, catId);
+        return Resp.ok(page);
+    }
+
+    @GetMapping("withattr/{gid}")
+    public Resp<GroupVO> queryGroupWithAttrsByGid(@PathVariable("gid") long gid) {
+        GroupVO groupVO = attrGroupService.queryGroupWithAttrsByGid(gid);
+        return Resp.ok(groupVO);
+    }
 
     /**
      * 列表
@@ -45,8 +59,8 @@ public class AttrGroupController {
     @ApiOperation("详情查询")
     @GetMapping("/info/{attrGroupId}")
     @PreAuthorize("hasAuthority('pms:attrgroup:info')")
-    public Resp<AttrGroup> info(@PathVariable("attrGroupId") Long attrGroupId){
-		AttrGroup attrGroup = attrGroupService.getById(attrGroupId);
+    public Resp<AttrGroup> info(@PathVariable("attrGroupId") Long attrGroupId) {
+        AttrGroup attrGroup = attrGroupService.getById(attrGroupId);
 
         return Resp.ok(attrGroup);
     }
@@ -57,8 +71,8 @@ public class AttrGroupController {
     @ApiOperation("保存")
     @PostMapping("/save")
     @PreAuthorize("hasAuthority('pms:attrgroup:save')")
-    public Resp<Object> save(@RequestBody AttrGroup attrGroup){
-		attrGroupService.save(attrGroup);
+    public Resp<Object> save(@RequestBody AttrGroup attrGroup) {
+        attrGroupService.save(attrGroup);
 
         return Resp.ok(null);
     }
@@ -69,8 +83,8 @@ public class AttrGroupController {
     @ApiOperation("修改")
     @PostMapping("/update")
     @PreAuthorize("hasAuthority('pms:attrgroup:update')")
-    public Resp<Object> update(@RequestBody AttrGroup attrGroup){
-		attrGroupService.updateById(attrGroup);
+    public Resp<Object> update(@RequestBody AttrGroup attrGroup) {
+        attrGroupService.updateById(attrGroup);
 
         return Resp.ok(null);
     }
@@ -81,8 +95,8 @@ public class AttrGroupController {
     @ApiOperation("删除")
     @PostMapping("/delete")
     @PreAuthorize("hasAuthority('pms:attrgroup:delete')")
-    public Resp<Object> delete(@RequestBody Long[] attrGroupIds){
-		attrGroupService.removeByIds(Arrays.asList(attrGroupIds));
+    public Resp<Object> delete(@RequestBody Long[] attrGroupIds) {
+        attrGroupService.removeByIds(Arrays.asList(attrGroupIds));
 
         return Resp.ok(null);
     }
