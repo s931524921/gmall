@@ -14,5 +14,7 @@ import com.java.core.bean.QueryCondition;
 public interface SpuInfoService extends IService<SpuInfo> {
 
     PageVo queryPage(QueryCondition params);
+
+    PageVo querySpuPage(QueryCondition queryCondition, Long cid);
 }
 
