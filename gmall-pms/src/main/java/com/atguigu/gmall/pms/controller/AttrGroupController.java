@@ -40,6 +40,12 @@ public class AttrGroupController {
         return Resp.ok(groupVO);
     }
 
+    @GetMapping("withattrs/cat/{catId}")
+    public Resp<List<GroupVO>> queryGroupWithAttrsByCId(@PathVariable("catId") long cid) {
+        List<GroupVO> groupVO = attrGroupService.queryGroupWithAttrsByCId(cid);
+        return Resp.ok(groupVO);
+    }
+
     /**
      * 列表
      */

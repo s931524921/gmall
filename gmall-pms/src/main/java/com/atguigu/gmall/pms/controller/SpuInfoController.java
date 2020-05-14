@@ -2,6 +2,7 @@ package com.atguigu.gmall.pms.controller;
 
 import com.atguigu.gmall.pms.entity.SpuInfo;
 import com.atguigu.gmall.pms.service.SpuInfoService;
+import com.atguigu.gmall.pms.vo.SpuInfoVo;
 import com.java.core.bean.PageVo;
 import com.java.core.bean.QueryCondition;
 import com.java.core.bean.Resp;
@@ -63,8 +64,8 @@ public class SpuInfoController {
     @ApiOperation("保存")
     @PostMapping("/save")
     @PreAuthorize("hasAuthority('pms:spuinfo:save')")
-    public Resp<Object> save(@RequestBody SpuInfo spuInfo) {
-        spuInfoService.save(spuInfo);
+    public Resp<Object> save(@RequestBody SpuInfoVo spuInfoVo) {
+        spuInfoService.bigSave(spuInfoVo);
 
         return Resp.ok(null);
     }

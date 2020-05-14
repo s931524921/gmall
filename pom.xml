@@ -32,6 +32,7 @@
         <module>gmall-cart</module>
         <module>gmall-order</module>
         <module>gmall-pay</module>
+        <module>gmall-sms-interface</module>
     </modules>
 
 
