@@ -5,10 +5,7 @@ import com.atguigu.gmall.pms.dao.SpuInfoDao;
 import com.atguigu.gmall.pms.dao.SpuInfoDescDao;
 import com.atguigu.gmall.pms.entity.*;
 import com.atguigu.gmall.pms.feign.GmallSmsClient;
-import com.atguigu.gmall.pms.service.ProductAttrValueService;
-import com.atguigu.gmall.pms.service.SkuImagesService;
-import com.atguigu.gmall.pms.service.SkuSaleAttrValueService;
-import com.atguigu.gmall.pms.service.SpuInfoService;
+import com.atguigu.gmall.pms.service.*;
 import com.atguigu.gmall.pms.vo.BaseAttrVo;
 import com.atguigu.gmall.pms.vo.SkuInfoVo;
 import com.atguigu.gmall.pms.vo.SpuInfoVo;
@@ -19,10 +16,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.java.core.bean.PageVo;
 import com.java.core.bean.Query;
 import com.java.core.bean.QueryCondition;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
@@ -35,8 +34,6 @@ import java.util.stream.Collectors;
 public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfo> implements SpuInfoService {
 
     @Autowired
-    private SpuInfoDescDao spuInfoDescDao;
-    @Autowired
     private ProductAttrValueService productAttrValueService;
     @Autowired
     private SkuInfoDao skuInfoDao;
@@ -46,6 +43,8 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfo> impleme
     private SkuSaleAttrValueService skuSaleAttrValueService;
     @Autowired
     private GmallSmsClient smsClient;
+    @Autowired
+    private SpuInfoDescService saveSpuInfoDesc;
 
     @Override
     public PageVo queryPage(QueryCondition params) {
@@ -82,37 +81,26 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfo> impleme
     }
 
     @Override
-    @Transactional
+    @GlobalTransactional
     public void bigSave(SpuInfoVo spuInfoVo) {
 
         //1.保存spu相关3张表
         //保存pms_spu_info
-        spuInfoVo.setCreateTime(new Date());
-        spuInfoVo.setUpdateTime(spuInfoVo.getCreateTime());
-        this.save(spuInfoVo);
-        Long spuId = spuInfoVo.getId();
+        Long spuId = saveSpuInfo(spuInfoVo);
 
         //保存pms_spu_info_desc
-        List<String> spuImages = spuInfoVo.getSpuImages();
-        if (CollectionUtils.isEmpty(spuImages)) {
-            SpuInfoDesc spuInfoDesc = new SpuInfoDesc();
-            spuInfoDesc.setSpuId(spuId);
-            spuInfoDesc.setDecript(StringUtils.join(spuImages, ","));
-            this.spuInfoDescDao.insert(spuInfoDesc);
-        }
+        this.saveSpuInfoDesc.saveSpuInfoDesc(spuInfoVo, spuId);
 
         //保存pms_product_attr_value
-        List<BaseAttrVo> baseAttrs = spuInfoVo.getBaseAttrs();
-        if (!CollectionUtils.isEmpty(baseAttrs)) {
-            List<ProductAttrValue> productAttrValues = baseAttrs.stream().map(baseAttrVo -> {
-                ProductAttrValue productAttrValue = baseAttrVo;
-                productAttrValue.setSpuId(spuId);
-                return productAttrValue;
-            }).collect(Collectors.toList());
-            this.productAttrValueService.saveBatch(productAttrValues);
-        }
+        saveBaseAttrValue(spuInfoVo, spuId);
 
         //2.保存sku相关3张表
+        saveSkuAndSale(spuInfoVo, spuId);
+
+        int i=1/0;
+    }
+
+    private void saveSkuAndSale(SpuInfoVo spuInfoVo, Long spuId) {
         List<SkuInfoVo> skus = spuInfoVo.getSkus();
         if (CollectionUtils.isEmpty(skus)) {
             return;
@@ -159,6 +147,25 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfo> impleme
             this.smsClient.saveSale(skuSaleVo);
 
         });
+    }
+
+    private void saveBaseAttrValue(SpuInfoVo spuInfoVo, Long spuId) {
+        List<BaseAttrVo> baseAttrs = spuInfoVo.getBaseAttrs();
+        if (!CollectionUtils.isEmpty(baseAttrs)) {
+            List<ProductAttrValue> productAttrValues = baseAttrs.stream().map(baseAttrVo -> {
+                ProductAttrValue productAttrValue = baseAttrVo;
+                productAttrValue.setSpuId(spuId);
+                return productAttrValue;
+            }).collect(Collectors.toList());
+            this.productAttrValueService.saveBatch(productAttrValues);
+        }
+    }
+
+    private Long saveSpuInfo(SpuInfoVo spuInfoVo) {
+        spuInfoVo.setCreateTime(new Date());
+        spuInfoVo.setUpdateTime(spuInfoVo.getCreateTime());
+        this.save(spuInfoVo);
+        return spuInfoVo.getId();
     }
 
 }

@@ -17,6 +17,7 @@ import com.java.core.bean.QueryCondition;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("skuBoundsService")
 public class SkuBoundsServiceImpl extends ServiceImpl<SkuBoundsDao, SkuBounds> implements SkuBoundsService {
@@ -37,6 +38,7 @@ public class SkuBoundsServiceImpl extends ServiceImpl<SkuBoundsDao, SkuBounds> i
     }
 
     @Override
+    @Transactional
     public void saveSale(SkuSaleVo skuSaleVo) {
 
         //保存sms_sku_bounds
